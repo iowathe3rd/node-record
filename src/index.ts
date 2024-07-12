@@ -5,6 +5,9 @@ import { ChildProcess, spawn } from 'child_process';
 import { loadRecorderConfig } from './recorders';
 import logger from './utils/logger';
 
+/**
+ * Represents a recorder that can start, stop, pause, and resume recording.
+ */
 class Recorder {
 	private readonly options: RecorderOptions;
 	private cmd: string;
@@ -15,6 +18,10 @@ class Recorder {
 	private readonly logger = logger;
 	private readonly debug: boolean;
 
+	/**
+	 * Creates a new instance of the Recorder class.
+	 * @param options - The options for the recorder.
+	 */
 	constructor(options: RecorderOptions & OtherOptions = {}) {
 		this.debug = options.debug || false;
 		const defaults = getDefaultConfig();
@@ -35,6 +42,11 @@ class Recorder {
 			this.args = args;
 		}
 	}
+
+	/**
+	 * Starts the recording process.
+	 * @returns The current instance of the Recorder.
+	 */
 	public start(): this {
 		if (!this.childProcess) {
 			this.childProcess = spawn(this.cmd, this.args);
@@ -58,18 +70,29 @@ class Recorder {
 			this.logger.warn('Recording process is already running.');
 		}
 		return this;
-	}   
+	}
+
+	/**
+	 * Stops the recording process.
+	 */
 	public stop(): void {
 		this.terminateProcess('No recording process to stop.');
 	}
 
+	/**
+	 * Pauses the recording process.
+	 */
 	public pause(): void {
 		this.controlProcess('SIGSTOP', 'Recording paused.', 'Recording not started yet.');
 	}
 
+	/**
+	 * Resumes the recording process.
+	 */
 	public resume(): void {
 		this.controlProcess('SIGCONT', 'Resumed recording.', 'Recording not started yet.');
 	}
+
 	private terminateProcess(warnMessage: string): void {
 		if (this.childProcess) {
 			this.childProcess.kill();
@@ -88,6 +111,11 @@ class Recorder {
 			this.logger.debug(debugMessage);
 		}
 	}
+
+	/**
+	 * Checks if the recording process is currently paused.
+	 * @returns True if the recording process is paused, false otherwise.
+	 */
 	public isPaused(): boolean {
 		if (!this.childProcess) {
 			this.logger.warn('Recording not started yet.');
@@ -97,6 +125,10 @@ class Recorder {
 		}
 	}
 
+	/**
+	 * Gets the readable stream for the recording.
+	 * @returns The readable stream for the recording, or null if the recording has not yet started.
+	 */
 	public getStream(): Readable | null {
 		if (!this.childProcess) {
 			this.logger.debug('Recording not yet started.');
